@@ -1,6 +1,7 @@
-import requests
 import configparser
 from datetime import datetime
+from argparse import ArgumentParser
+import requests
 
 
 def get_request(q='Beirut', units='metric'):
@@ -43,4 +44,9 @@ def __filter_response(jsn, temp_unit='C'):
 
 
 if __name__ == "__main__":    
-    get_request()
+    parser = ArgumentParser("The Weather Today")
+    parser.add_argument('city', help="city to fetch weather forecast")
+    parser.add_argument('-u', '--unit', default='metric', help="unit of degrees metric/kelvin")
+    args = parser.parse_args()
+
+    get_request(q=args.city, units=args.unit)
