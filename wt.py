@@ -3,20 +3,26 @@ from datetime import datetime
 from argparse import ArgumentParser
 import requests
 
-
-def get_request(q='Beirut', units='metric'):
+def get_request(q, units='metric'):
     url = "https://api.openweathermap.org/data/2.5/weather?"
     cnf = configparser.ConfigParser()
     cnf.read('etc/config.ini')
     appid = cnf.get('main', 'appid')
+    geoid = cnf.get('main', 'geoid')
     units = units
+
+    if q == 'geo':
+        rg = requests.get('https://api.ipdata.co?', params={'api-key': geoid})
+        # print(rg.json())
+        resg = rg.json()
+        q = resg['city']
     
     r = requests.get(url, params={'q': q, 'units': units, 'appid': appid,})
     if r.status_code == 200:
         jsn_res = r.json()
-        __filter_response(jsn_res, temp_unit='C' if units == 'metric' else 'K')
+        __filter_response(jsn_res, temp_unit='C' if units == 'metric' else 'K')        
     else:
-        print('Trouble connecting to server')
+        print('Trouble connecting to server')    
 
 def __filter_response(jsn, temp_unit='C'):
     city = jsn['name']
@@ -45,8 +51,11 @@ def __filter_response(jsn, temp_unit='C'):
 
 if __name__ == "__main__":    
     parser = ArgumentParser("The Weather Today")
-    parser.add_argument('city', help="city to fetch weather forecast")
+    parser.add_argument('-c', '--city', help="city to fetch weather forecast")
     parser.add_argument('-u', '--unit', default='metric', help="unit of degrees metric/kelvin")
     args = parser.parse_args()
 
-    get_request(q=args.city, units=args.unit)
+    g = 'geo'
+    if args.city:
+        g = args.city
+    get_request(q=g, units=args.unit)
